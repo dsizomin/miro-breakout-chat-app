@@ -13,7 +13,8 @@
 
     export let chatFactory: (settings: ChatSettings) => ChatController
     export let roomId: string
-    export let name: string
+    export let userId: string
+    export let userName: string
 
     let newMessageText: string = ''
 
@@ -21,24 +22,26 @@
 
     let messageGroups: Array<MessageGroup> = [];
 
-    const handleNewMessage: MessageHandler = (text, author) => {
+    const handleNewMessage: MessageHandler = (text, authorId, authorName) => {
 
-        const isAuthorCurrentUser = author === name;
+        const isAuthorCurrentUser = authorId === userId;
 
         const newMessageGroupItem: MessageGroupItem = {text, timestamp: new Date()};
 
         const latestMessageGroup: ?MessageGroup = messageGroups.length ? messageGroups[messageGroups.length - 1] : null;
 
-        if (latestMessageGroup && latestMessageGroup.author === author) {
+        if (latestMessageGroup && latestMessageGroup.authorId === authorId) {
             // It is important that we're replacing the item in array, and mutating, as mutation won't trigger update
             messageGroups = [...messageGroups.slice(0, -2), {
-                author,
+                authorId,
+                authorName,
                 isAuthorCurrentUser,
                 items: [...latestMessageGroup.items, newMessageGroupItem]
             }];
         } else {
             messageGroups = [...messageGroups, {
-                author,
+                authorId,
+                authorName,
                 isAuthorCurrentUser,
                 items: [newMessageGroupItem]
             }];
@@ -56,7 +59,7 @@
     }
 
     onMount(() => {
-        chatController = chatFactory({roomId, name, messageHandler: handleNewMessage})
+        chatController = chatFactory({roomId, userId, userName, messageHandler: handleNewMessage})
     })
 </script>
 
@@ -78,7 +81,7 @@
         flex-direction: column;
         justify-content: flex-end;
         height: calc(100% - 120px);
-        padding: 0 24px;
+        padding: 0 8px;
     }
 
     .sidebar__footer {
