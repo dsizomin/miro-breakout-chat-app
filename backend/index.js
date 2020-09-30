@@ -10,6 +10,7 @@ var rooms = {}
 var roomsCreatedAt = new WeakMap()
 var names = new WeakMap()
 var roomId
+var id
 var name
 
 app.use(cors())
@@ -33,16 +34,17 @@ app.get('/rooms', (req, res) => {
 })
 
 io.on('connection', (socket) => {
-	socket.on('join', (_roomId, _name, callback) => {
-		if (!_roomId || !_name) {
+	socket.on('join', (_roomId, _id, _name, callback) => {
+		if (!_roomId || !_id || !_name) {
 			if (callback) {
-				callback('roomId and name params required')
+				callback('roomId, id and name params required')
 			}
-			console.warn(`${socket.id} attempting to connect without roomId or name`, {roomId, name})
+			console.warn(`${socket.id} attempting to connect without roomId, id or name`, {_roomId, _id, _name})
 			return
 		}
 
 		roomId = _roomId
+		id = _id
 		name = _name
 
 		if (rooms[roomId]) {
@@ -63,7 +65,7 @@ io.on('connection', (socket) => {
 	})
 
 	socket.on('chat message', (msg) => {
-		io.to(roomId).emit('chat message', msg, name)
+		io.to(roomId).emit('chat message', msg, id, name)
 	})
 
 	socket.on('disconnect', () => {
