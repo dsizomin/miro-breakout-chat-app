@@ -1,9 +1,3 @@
-export interface Message {
-	text: string
-	author: string
-	timestamp: Date
-}
-
 export interface MessageGroupItem {
 	text: string,
 	timestamp: Date
