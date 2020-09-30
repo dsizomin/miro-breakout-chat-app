@@ -1,15 +1,18 @@
 <script lang="ts">
-	import type {Message} from '../../interfaces/chat'
-	export let message: Message
+	import type {MessageGroup, MessageGroupItem} from '../../interfaces/chat'
+	export let messageGroup: MessageGroup
 </script>
 
 <div class="message__container">
 	<div class="message__header">
-		<strong>{decodeURIComponent(message.author)}</strong>
-		<span>{message.timestamp.toLocaleTimeString().slice(0, 5)}</span>
+		<strong>{decodeURIComponent(messageGroup.author)}</strong>
+		<!--	TODO dsizomin Consider revisiting the layout to show timestamp per individual message	-->
+		<span>{messageGroup.items[0].timestamp.toLocaleTimeString().slice(0, 5)}</span>
 	</div>
 	<div class="message__body">
-		<p class="message__text">{message.text}</p>
+		{#each messageGroup.items as item}
+			<p class="message__text">{item.text}</p>
+		{/each}
 	</div>
 </div>
 
