@@ -5,7 +5,6 @@
     import type {
         MessageHandler,
         EmitHandler,
-        Message as MessageInterface,
         ChatController,
         ChatSettings,
         MessageGroup,
@@ -20,37 +19,30 @@
 
     let chatController: ChatController = null
 
-    let messages: Array<MessageInterface> = []
-
-    /*
-      Reactive value holding grouped messages.
-
-      TODO (dsizomin) This value will be recalculated every time a new message appears.
-      Consider storing messages grouped right away instead of storing them in "raw" form.
-     */
-    let messageGroups: Array<MessageGroup>
-    $: messageGroups = messages.reduce((result: Array<MessageGroup>, currentMessage: MessageInterface) => {
-
-        const {author, text, timestamp} = currentMessage;
-        const newMessageGroupItem: MessageGroupItem = {timestamp, text};
-
-		const latestMessage: ?MessageInterface = result.length ? result[result.length - 1] : null;
-
-		if (latestMessage && latestMessage.author === author) {
-			latestMessage.items.push(newMessageGroupItem);
-			return result;
-		} else {
-			return [...result, {
-				author,
-				isAuthorCurrentUser: author === name,
-				items: [newMessageGroupItem]
-			}]
-		}
-
-	}, []);
+    let messageGroups: Array<MessageGroup> = [];
 
     const handleNewMessage: MessageHandler = (text, author) => {
-        messages = [...messages, {text, author, timestamp: new Date()}]
+
+        const isAuthorCurrentUser = author === name;
+
+        const newMessageGroupItem: MessageGroupItem = {text, timestamp: new Date()};
+
+        const latestMessageGroup: ?MessageGroup = messageGroups.length ? messageGroups[messageGroups.length - 1] : null;
+
+        if (latestMessageGroup && latestMessageGroup.author === author) {
+            // It is important that we're replacing the item in array, and mutating, as mutation won't trigger update
+            messageGroups = [...messageGroups.slice(0, -2), {
+                author,
+                isAuthorCurrentUser,
+                items: [...latestMessageGroup.items, newMessageGroupItem]
+            }];
+        } else {
+            messageGroups = [...messageGroups, {
+                author,
+                isAuthorCurrentUser,
+                items: [newMessageGroupItem]
+            }];
+        }
     }
 
     const handleMessageSend = () => {
