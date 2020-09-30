@@ -4,6 +4,18 @@ export interface Message {
 	timestamp: Date
 }
 
+export interface MessageGroupItem {
+	text: string,
+	timestamp: Date
+}
+
+export interface MessageGroup {
+	author: string,
+	items: MessageGroupItem[]
+	// I'm not particularly happy with this member name
+	isAuthorCurrentUser: boolean
+}
+
 export type MessageHandler = (msg: string, name: string) => void
 
 export type EmitHandler = (error: any, response: any) => void
