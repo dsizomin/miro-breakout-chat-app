@@ -1,17 +1,17 @@
-var express = require('express')
-var app = express()
-var cors = require('cors')
-var http = require('http').Server(app)
-var socketConfig = require('./config')
-var io = require('socket.io')(http, socketConfig)
-var port = process.env.PORT || 8081
+const express = require('express')
+const app = express()
+const cors = require('cors')
+const http = require('http').Server(app)
+const socketConfig = require('./config')
+const io = require('socket.io')(http, socketConfig)
 
-var rooms = {}
-var roomsCreatedAt = new WeakMap()
-var names = new WeakMap()
-var roomId
-var id
-var name
+const port = process.env.PORT || 8081
+
+const passport = require('./passport')
+
+const rooms = {}
+const roomsCreatedAt = new WeakMap()
+const names = new WeakMap()
 
 app.use(cors())
 
@@ -33,53 +33,64 @@ app.get('/rooms', (req, res) => {
 	res.json(Object.keys(rooms))
 })
 
+io.use(passport.initialize)
+io.use(passport.authenticate)
+
 io.on('connection', (socket) => {
-	socket.on('join', (_roomId, _id, _name, callback) => {
-		if (!_roomId || !_id || !_name) {
-			if (callback) {
-				callback('roomId, id and name params required')
-			}
-			console.warn(`${socket.id} attempting to connect without roomId, id or name`, {_roomId, _id, _name})
-			return
-		}
+	const userContext = socket.request.session.passport.user
 
-		roomId = _roomId
-		id = _id
-		name = _name
+	const userName = userContext.user.name
+	const userId = userContext.user.id
 
-		if (rooms[roomId]) {
-			rooms[roomId][socket.id] = socket
-		} else {
-			rooms[roomId] = {[socket.id]: socket}
-			roomsCreatedAt.set(rooms[roomId], new Date())
-		}
-		socket.join(roomId)
+  let roomId
 
-		names.set(socket, name)
+  socket.on('join', (_roomId, callback) => {
+  	if (!_roomId) {
+  		if (callback) {
+  			callback('roomId param required')
+  		}
+  		console.warn(`${socket.id} attempting to connect without roomId`)
+  		return
+  	}
 
-		io.to(roomId).emit('system message', `${name} joined ${roomId}`)
+  	roomId = _roomId
 
-		if (callback) {
-			callback(null, {success: true})
-		}
-	})
+  	if (rooms[roomId]) {
+  		rooms[roomId][socket.id] = socket
+  	} else {
+  		rooms[roomId] = {[socket.id]: socket}
+  		roomsCreatedAt.set(rooms[roomId], new Date())
+  	}
+  	socket.join(roomId)
 
-	socket.on('chat message', (msg) => {
-		io.to(roomId).emit('chat message', msg, id, name)
-	})
+  	names.set(socket, userName)
 
-	socket.on('disconnect', () => {
-		io.to(roomId).emit('system message', `${name} left ${roomId}`)
+  	io.to(roomId).emit('system message', `${userName} joined ${roomId}`)
 
-		delete rooms[roomId][socket.id]
+  	if (callback) {
+  		callback(null, {success: true})
+  	}
+  })
+
+  socket.on('chat message', (msg) => {
+  	io.to(roomId).emit('chat message', msg, userId, userName)
+  })
+
+  socket.on('disconnect', () => {
+  	io.to(roomId).emit('system message', `${userName} left ${roomId}`)
 
 		const room = rooms[roomId]
-		if (!Object.keys(room).length) {
-			delete rooms[roomId]
+
+		if (room) {
+			delete rooms[roomId][socket.id]
+
+			if (!Object.keys(room).length) {
+				delete rooms[roomId]
+			}
 		}
-	})
+  })
 })
 
 http.listen(port, '0.0.0.0', () => {
-	console.log('listening on *:' + port)
+  console.log('listening on *:' + port)
 })
