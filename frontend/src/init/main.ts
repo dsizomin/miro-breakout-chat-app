@@ -1,8 +1,8 @@
 import {CLIENT_ID} from '../config'
 import appIcon from './icon'
 
-const initChat = (breakoutChatRoomId: string) => {
-	miro.__setRuntimeState({
+const initChat = async (breakoutChatRoomId: string) => {
+	await miro.__setRuntimeState({
 		[CLIENT_ID]: {
 			breakoutChatRoomId,
 		},
@@ -10,6 +10,15 @@ const initChat = (breakoutChatRoomId: string) => {
 
 	miro.board.ui.closeLeftSidebar()
 	miro.board.ui.openLeftSidebar('/chat')
+}
+
+const destroyChatIfNeeded = async (breakoutChatRoomIds: string[]) => {
+	const runtimeState = await miro.__getRuntimeState()
+	const currentBreakoutChatRoomId = runtimeState[CLIENT_ID]?.breakoutChatRoomId;
+
+	if (currentBreakoutChatRoomId && breakoutChatRoomIds.includes(currentBreakoutChatRoomId)) {
+		miro.board.ui.closeLeftSidebar()
+	}
 }
 
 const handleAddChatClick = async () => {
@@ -39,7 +48,7 @@ const handleAddChatClick = async () => {
 	// @ts-ignore
 	miro.board.viewport.zoomToObject(widget)
 
-	initChat(widget.id)
+	await initChat(widget.id)
 }
 
 const initPlugin = async () => {
@@ -49,6 +58,12 @@ const initPlugin = async () => {
 		if (widgets.length === 1 && widgets[0].metadata[CLIENT_ID]?.isBreakoutChatButton) {
 			initChat(widgets[0].id)
 		}
+	})
+
+	// @ts-ignore
+	miro.addListener(miro.enums.event.WIDGETS_DELETED, async (event) => {
+		const deletedWidgetIds = event.data.map(({id}) => id)
+		await destroyChatIfNeeded(deletedWidgetIds)
 	})
 
 	await miro.initialize({
