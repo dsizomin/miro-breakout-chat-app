@@ -17,6 +17,10 @@
     export let roomId: string
     export let user: User
 
+    /*
+        This value tells if messages are being fetch right now
+        TODO (dsizomin) Implement a proper loading indicator based on this value
+    */
     let isLoading: boolean = false
 
     let newMessageText: string = ''
@@ -25,6 +29,14 @@
 
     let messageGroups: Array<MessageGroup> = [];
 
+    /*
+        Helper function which puts a new message to existing array of message groups,
+        either by creating a new group, or appending a message to the last one, if author is same.
+
+        I've extracted it to a separate function because it's being used in 2 scenarios:
+            - initial fetch of messages history (see onMount)
+            - processing new message (see handleNewMessage)
+     */
     const groupNewMessage = (messageGroups: Array<MessageGroup>, message: MessageResponse): Array<MessageGroup> => {
         const {authorId, authorName, text, timestamp} = message
 
@@ -37,8 +49,14 @@
 
         const latestMessageGroup: ?MessageGroup = messageGroups.length ? messageGroups[messageGroups.length - 1] : null;
 
+        /*
+            TODO (dsizomin) Grouping logic might be improved
+            Do we need to group together messages from different dates (one yesterday, one today)?
+            Maybe we should only group messages if they fit within some time slot, let's say 5 minutes?
+         */
         if (latestMessageGroup && latestMessageGroup.authorId === authorId) {
-            // It is important that we're replacing the item in array, and mutating, as mutation won't trigger update
+            // Message from same author is the last one, so we append it to existing message group.
+            // It is important that we're replacing the item in array, as mutation won't trigger update.
             return [...messageGroups.slice(0, -2), {
                 authorId,
                 authorName,
@@ -46,6 +64,7 @@
                 items: [...latestMessageGroup.items, newMessageGroupItem]
             }];
         } else {
+            // Message from different author, so we create a new group.
             return [...messageGroups, {
                 authorId,
                 authorName,
@@ -78,6 +97,10 @@
             .then(messages => {
                 messageGroups = messages.reduce(groupNewMessage, [])
             })
+            /*
+                TODO (dsizomin) Using console like this might be dangerous in browsers like IE, as it might be undefined
+                Consider using a console polyfill https://github.com/paulmillr/console-polyfill
+             */
             .catch(err => console.error(err))
             .finally(() => isLoading = false)
     })

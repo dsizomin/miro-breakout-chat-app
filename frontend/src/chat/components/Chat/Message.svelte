@@ -7,6 +7,7 @@
 
 	{#if !messageGroup.isAuthorCurrentUser}
 	<div class="message__avatar">
+		<!-- TODO (dsizomin) Using hardcoded src like this might be dangerous, consider getting it from API. -->
 		<img
 			src={`https://miro.com/api/v1/users/${messageGroup.authorId}/picture?rnd=1&size=44`}
 			alt={messageGroup.authorName}
@@ -24,6 +25,10 @@
 	</div>
 
 	<div class="message__datetime">
+		<!--
+			TODO (dsizomin) Consider using the last message in a group for timestamp.
+			As timestamp is shown at the bottom of the message group, perhaps it would make more sense.
+		-->
 		{messageGroup.items[0].timestamp.toLocaleTimeString().slice(0, 5)}
 	</div>
 
