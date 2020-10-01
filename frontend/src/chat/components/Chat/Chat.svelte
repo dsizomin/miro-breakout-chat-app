@@ -88,6 +88,16 @@
         return false
     }
 
+    const handleZoomToWidget = async () => {
+        const widgets = await miro.board.widgets.get({ id: roomId })
+
+        if (widgets.length) {
+            // TODO (dsizomin) zoomToObject method is deprecated and needs to be changed
+            // @ts-ignore
+            miro.board.viewport.zoomToObject(widget)
+        }
+    }
+
     onMount(() => {
         chatController = chatFactory({roomId, user, messageHandler: handleNewMessage})
 
@@ -154,6 +164,11 @@
 <div class="sidebar__container">
     <div class="sidebar__header">
         <span class="miro-h2">Breakout Chat</span>
+        <br>
+        <!-- TODO (dsizomin) Replace with a proper icon ("crosshair" icon might be a good option) -->
+        <a href="#" role="button" on:click|preventDefault={handleZoomToWidget}>
+            Zoom to widget
+        </a>
     </div>
     <div class="sidebar__body">
         <div class="sidebar__message-list">
