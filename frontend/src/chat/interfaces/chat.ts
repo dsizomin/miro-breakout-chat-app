@@ -11,7 +11,7 @@ export interface MessageGroup {
 	isAuthorCurrentUser: boolean
 }
 
-export type MessageHandler = (msg: string, id: string, name: string) => void
+export type MessageHandler = (message: MessageResponse) => void
 
 export type EmitHandler = (error: any, response: any) => void
 
@@ -21,8 +21,17 @@ export interface ChatSettings {
 	messageHandler: MessageHandler
 }
 
+export type MessageResponse = {
+	authorId: string,
+	authorName: string,
+	roomId: string,
+	text: string,
+	timestamp: number
+}
+
 export interface ChatController {
-	sendMessage: (msg: string) => void
+	sendMessage: (msg: string) => void,
+	fetchMessages: (roomId: string) => Promise<Array<MessageResponse>>
 }
 
 export interface User {
