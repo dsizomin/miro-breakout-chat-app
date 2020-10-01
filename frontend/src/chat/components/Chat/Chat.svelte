@@ -3,6 +3,7 @@
     import Message from './Message.svelte'
 
     import type {
+        User,
         MessageHandler,
         EmitHandler,
         ChatController,
@@ -13,8 +14,7 @@
 
     export let chatFactory: (settings: ChatSettings) => ChatController
     export let roomId: string
-    export let userId: string
-    export let userName: string
+    export let user: User
 
     let newMessageText: string = ''
 
@@ -24,7 +24,7 @@
 
     const handleNewMessage: MessageHandler = (text, authorId, authorName) => {
 
-        const isAuthorCurrentUser = authorId === userId;
+        const isAuthorCurrentUser = authorId === user.id;
 
         const newMessageGroupItem: MessageGroupItem = {text, timestamp: new Date()};
 
@@ -59,7 +59,7 @@
     }
 
     onMount(() => {
-        chatController = chatFactory({roomId, userId, userName, messageHandler: handleNewMessage})
+        chatController = chatFactory({roomId, user, messageHandler: handleNewMessage})
     })
 </script>
 

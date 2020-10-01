@@ -3,27 +3,28 @@ import Chat from './components/Chat/Chat.svelte'
 import Error from './components/Error.svelte'
 
 import {CLIENT_ID} from '../config'
+import type {User} from './interfaces/chat'
 
-const initApp = (roomId: string, userId: string, userName: string) => {
+const initApp = (roomId: string, user: User) => {
 	const app = new Chat({
 		target: document.body,
 		props: {
 			roomId,
-			userId,
-			userName,
+			user,
 			chatFactory: socketioControllerFactory,
 		},
 	})
 }
 
-const getCurrentUserData = async (): Promise<{ id: string, name: string }> => {
+const getCurrentUserData = async (): Promise<User> => {
 	const id = await miro.currentUser.getId()
+	const token = await miro.getToken()
 	// @ts-ignore
 	const onlineUsers = await miro.board.getOnlineUsers()
 
 	const name = onlineUsers.find((user) => user.id === id)?.name
 
-	return { id, name }
+	return { id, name, token }
 }
 
 miro.onReady(async () => {
@@ -31,7 +32,7 @@ miro.onReady(async () => {
 	const user = await getCurrentUserData()
 
 	if (savedState[CLIENT_ID]?.breakoutChatRoomId && user) {
-		initApp(savedState[CLIENT_ID]?.breakoutChatRoomId, user.id, user.name)
+		initApp(savedState[CLIENT_ID]?.breakoutChatRoomId, user)
 	} else {
 		const app = new Error({
 			target: document.body,
