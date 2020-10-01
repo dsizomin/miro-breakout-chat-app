@@ -2,8 +2,7 @@ const express = require('express')
 const socketio = require('socket.io');
 const cors = require('cors')
 const http = require('http')
-
-const MessagesRepository = require('./repositories/messages')
+const path = require('path')
 
 const auth = require('./auth')
 const initDB = require('./database')
@@ -15,7 +14,10 @@ const rooms = {}
 const roomsCreatedAt = new WeakMap()
 const names = new WeakMap()
 
-initDB()
+// TODO (dsizomin) Consider moving db path to config file
+const dbPath = path.resolve(__dirname, (process.env.DB || './db/breakout.db'))
+
+initDB(dbPath)
   .catch(err => {
     console.error(err)
     process.exit(0)

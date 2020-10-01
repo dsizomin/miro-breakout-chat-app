@@ -1,10 +1,6 @@
-const path = require('path')
 const sqlite3 = require('sqlite3').verbose()
 
-// TODO (dsizomin) Ideally should come from config or env variable
-const dbPath = path.resolve(__dirname, './db/breakout.db')
-
-const init = () => {
+const init = (dbPath) => {
   return new Promise((res, rej) => {
     const db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
