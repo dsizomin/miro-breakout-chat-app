@@ -60,6 +60,8 @@ const initPlugin = async () => {
 		}
 	})
 
+	miro
+
 	// @ts-ignore
 	miro.addListener(miro.enums.event.WIDGETS_DELETED, async (event) => {
 		const deletedWidgetIds = event.data.map(({id}) => id)

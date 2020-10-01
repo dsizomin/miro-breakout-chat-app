@@ -4,6 +4,7 @@
 
     import type {
         User,
+        MessageResponse,
         MessageHandler,
         EmitHandler,
         ChatController,
@@ -16,36 +17,46 @@
     export let roomId: string
     export let user: User
 
+    let isLoading: boolean = false
+
     let newMessageText: string = ''
 
     let chatController: ChatController = null
 
     let messageGroups: Array<MessageGroup> = [];
 
-    const handleNewMessage: MessageHandler = (text, authorId, authorName) => {
+    const groupNewMessage = (messageGroups: Array<MessageGroup>, message: MessageResponse): Array<MessageGroup> => {
+        const {authorId, authorName, text, timestamp} = message
 
         const isAuthorCurrentUser = authorId === user.id;
 
-        const newMessageGroupItem: MessageGroupItem = {text, timestamp: new Date()};
+        const newMessageGroupItem: MessageGroupItem = {
+            text: text,
+            timestamp: new Date(timestamp)
+        };
 
         const latestMessageGroup: ?MessageGroup = messageGroups.length ? messageGroups[messageGroups.length - 1] : null;
 
         if (latestMessageGroup && latestMessageGroup.authorId === authorId) {
             // It is important that we're replacing the item in array, and mutating, as mutation won't trigger update
-            messageGroups = [...messageGroups.slice(0, -2), {
+            return [...messageGroups.slice(0, -2), {
                 authorId,
                 authorName,
                 isAuthorCurrentUser,
                 items: [...latestMessageGroup.items, newMessageGroupItem]
             }];
         } else {
-            messageGroups = [...messageGroups, {
+            return [...messageGroups, {
                 authorId,
                 authorName,
                 isAuthorCurrentUser,
                 items: [newMessageGroupItem]
             }];
         }
+    }
+
+    const handleNewMessage: MessageHandler = (message) => {
+        messageGroups = groupNewMessage(messageGroups, message)
     }
 
     const handleMessageSend = () => {
@@ -60,6 +71,15 @@
 
     onMount(() => {
         chatController = chatFactory({roomId, user, messageHandler: handleNewMessage})
+
+        isLoading = true
+        chatController
+            .fetchMessages(roomId)
+            .then(messages => {
+                messageGroups = messages.reduce(groupNewMessage, [])
+            })
+            .catch(err => console.error(err))
+            .finally(() => isLoading = false)
     })
 </script>
 
@@ -122,11 +142,12 @@
     <div class="sidebar__footer">
         <form on:submit|preventDefault={handleMessageSend}>
             <input
-                    disabled={chatController === null}
-                    type="text"
-                    class="miro-input miro-input--primary"
-                    bind:value={newMessageText}
-                    placeholder="Type your message here"/>
+                disabled={chatController === null || isLoading}
+                type="text"
+                class="miro-input miro-input--primary"
+                bind:value={newMessageText}
+                placeholder="Type your message here"
+            />
         </form>
     </div>
 </div>
