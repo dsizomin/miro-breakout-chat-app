@@ -73,15 +73,30 @@
 
     .sidebar__header {
         padding: 24px;
-        height: 64px;
     }
 
+    /*
+        Using justify-content: flex-end with overflow: auto might cause problems:
+        https://bugs.chromium.org/p/chromium/issues/detail?id=411624
+        Solution here is to use 2 containers:
+            - .sidebar__body for scrolling
+            - .sidebar__message-list for justifying the content.
+        Alternative solution without additional container could also be using margin-top: auto
+        on the first child (instead of justify-content: flex-end)
+     */
     .sidebar__body {
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
         height: calc(100% - 120px);
         padding: 0 8px;
+        overflow: auto;
+    }
+
+    .sidebar__message-list {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: flex-end;
     }
 
     .sidebar__footer {
@@ -98,9 +113,11 @@
         <span class="miro-h2">Breakout Chat</span>
     </div>
     <div class="sidebar__body">
-        {#each messageGroups as messageGroup}
-            <Message {messageGroup}/>
-        {/each}
+        <div class="sidebar__message-list">
+            {#each messageGroups as messageGroup}
+                <Message {messageGroup}/>
+            {/each}
+        </div>
     </div>
     <div class="sidebar__footer">
         <form on:submit|preventDefault={handleMessageSend}>
