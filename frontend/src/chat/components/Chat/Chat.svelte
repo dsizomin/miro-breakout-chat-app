@@ -59,7 +59,7 @@
         if (latestMessageGroup && latestMessageGroup.authorId === authorId) {
             // Message from same author is the last one, so we append it to existing message group.
             // It is important that we're replacing the item in array, as mutation won't trigger update.
-            return [...messageGroups.slice(0, -2), {
+            return [...messageGroups.slice(0, -1), {
                 authorId,
                 authorName,
                 isAuthorCurrentUser,
