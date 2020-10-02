@@ -55,6 +55,8 @@
 		border-radius: 4px;
 		flex-grow: 1;
 		padding: 8px;
+		overflow: hidden;
+		word-break: break-word;
 	}
 
 	.message__author {
