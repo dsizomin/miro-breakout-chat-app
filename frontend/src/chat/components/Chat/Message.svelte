@@ -44,10 +44,15 @@
 	.message__avatar {
 		border-radius: 22px;
 		overflow: hidden;
-		width: 44px;
+		flex: 44px 0 0;
 		height: 44px;
 		align-self: flex-end;
 		margin-right: 4px;
+	}
+
+	.message__avatar img {
+		width: 100%;
+		height: 100%;
 	}
 
 	.message__body {
