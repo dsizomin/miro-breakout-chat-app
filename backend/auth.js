@@ -2,18 +2,26 @@ const request = require('request')
 const passport = require('passport')
 const BearerStrategy = require('passport-http-bearer').Strategy
 
+/**
+ * Name of the strategy used for passport authentication
+ * @type {string}
+ */
 const STRATEGY_NAME = 'bearer'
+
+/**
+ * Endpoint to fetch used-related data
+ * More info: https://developers.miro.com/reference#section-get-current-token-context
+ * @type {string}
+ */
+const MIRO_TOKEN_CONTEXT_ENDPOINT = 'https://api.miro.com/v1/oauth-token'
 
 // Registering HTTP Bearer strategy for passport
 passport.use(STRATEGY_NAME, new BearerStrategy((token, done) => {
-
-  // Making a call to Miro API to fetch user data
-  // More info: https://developers.miro.com/reference#section-get-current-token-context
   request(
-    'https://api.miro.com/v1/oauth-token', {
+    MIRO_TOKEN_CONTEXT_ENDPOINT, {
       json: true,
-      'auth': {
-        'bearer': token
+      auth: {
+        bearer: token
       }
     },
     (err, res, body) => {
@@ -31,18 +39,22 @@ passport.use(STRATEGY_NAME, new BearerStrategy((token, done) => {
 }))
 
 passport.serializeUser((user, done) => done(null, user))
-
-
 passport.deserializeUser((obj, done) => done(null, obj));
 
-/*
-  Socket IO middleware has different signature (socket, next) as opposed to Connect middleware (req, res, next).
-  That's why we have to "wrap" it like this
+/**
+ * Socket IO middleware has different signature (socket, next) as opposed to Connect middleware (req, res, next).
+ * That's why we have to "wrap" it like this
+ * @param {Socket} socket
+ * @param {Function} next
  */
 function initializeSocketMiddleware(socket, next) {
   passport.initialize()(socket.request, {}, next)
 }
 
+/**
+ * @param {Socket} socket
+ * @param {Function} next
+ */
 function authenticateSocketMiddleware(socket, next) {
   passport.authenticate(STRATEGY_NAME, {session: false}, (err, user) => {
     if (err) {

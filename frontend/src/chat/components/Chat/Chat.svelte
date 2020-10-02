@@ -36,6 +36,8 @@
         I've extracted it to a separate function because it's being used in 2 scenarios:
             - initial fetch of messages history (see onMount)
             - processing new message (see handleNewMessage)
+
+        TODO (dsizomin) Consider moving it to some kind of `utils.js` so the component code is clean.
      */
     const groupNewMessage = (messageGroups: Array<MessageGroup>, message: MessageResponse): Array<MessageGroup> => {
         const {authorId, authorName, text, timestamp} = message

@@ -2,6 +2,19 @@ function MessagesRepository(db) {
   this.db = db
 }
 
+/**
+ * @param {string} authorId
+ * @param {string} authorName
+ * @param {string} roomId
+ * @param {string} text
+ * @returns {Promise<{
+ *   authorId: string,
+ *   authorName: string,
+ *   roomId: string,
+ *   text: string,
+ *   timestamp: string
+ * }>}
+ */
 MessagesRepository.prototype.storeMessage = function(authorId, authorName, roomId, text) {
   return new Promise((res, rej) => {
     const sql = `
@@ -10,23 +23,28 @@ MessagesRepository.prototype.storeMessage = function(authorId, authorName, roomI
     `
     const timestamp = Date.now();
     const values = [authorId, authorName, roomId, text, timestamp]
+    const message = {
+      authorId,
+      authorName,
+      roomId,
+      text,
+      timestamp
+    };
 
-    this.db.run(sql, values, (err) => {
-      if (err) {
-        rej(err)
-      } else {
-        res({
-          authorId,
-          authorName,
-          roomId,
-          text,
-          timestamp
-        })
-      }
-    })
+    this.db.run(sql, values, err => err ? rej(err) : res(message))
   })
 }
 
+/**
+ * @param {string} roomId
+ * @returns {Promise<Array<{
+ *   authorId: string,
+ *   authorName: string,
+ *   roomId: string,
+ *   text: string,
+ *   timestamp: string
+ * }>>}
+ */
 MessagesRepository.prototype.getByRoomId = function(roomId) {
   return new Promise((res, rej) => {
     const sql = `
@@ -42,13 +60,7 @@ MessagesRepository.prototype.getByRoomId = function(roomId) {
     `
     const params = [roomId]
 
-    this.db.all(sql, params, (err, rows) => {
-      if (err) {
-        rej(err)
-      } else {
-        res(rows)
-      }
-    })
+    this.db.all(sql, params, (err, rows) => err ? rej(err) : res(rows))
   })
 }
 

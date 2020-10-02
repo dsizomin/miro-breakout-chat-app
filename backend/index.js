@@ -10,6 +10,7 @@ const socketConfig = require('./config')
 
 const MessagesRepository = require('./repositories/messages')
 
+// TODO (dsizomin) As persistent storage has been implemented, consider using it to store rooms.
 const rooms = {}
 const roomsCreatedAt = new WeakMap()
 const names = new WeakMap()
@@ -19,11 +20,12 @@ const dbPath = path.resolve(__dirname, (process.env.DB || './db/breakout.db'))
 
 initDB(dbPath)
   .catch(err => {
+    // If connecting to DB failed - it's a game over. Log the error and exit.
     console.error(err)
     process.exit(0)
   })
   .then(db => {
-    console.log('Connected to the breakout database.');
+    console.log('Database is ready. Starting http server...');
 
     process.on('SIGTERM', () => db.close())
     process.on('exit', () => db.close())
@@ -36,6 +38,7 @@ initDB(dbPath)
     app.use(cors())
     app.use(auth.passport.initialize())
 
+    // TODO (dsizomin) Here and below we must check if the user has access to given room.
     app.get('/rooms/:roomId',
       auth.passport.authenticate(auth.STRATEGY_NAME),
       (req, res) => {
@@ -87,6 +90,7 @@ initDB(dbPath)
 
       let roomId = null
 
+      // TODO (dsizomin) Here and below "magic strings" messages should be moved to enum shared between FE and BE.
       socket.on('join', (_roomId, callback) => {
         if (!_roomId) {
           if (callback) {
@@ -142,7 +146,7 @@ initDB(dbPath)
     const port = process.env.PORT || 8081
 
     httpServer.listen(port, '0.0.0.0', () => {
-      console.log('listening on *:' + port)
+      console.log('HTTP server is listening on *:' + port)
     })
   })
 
