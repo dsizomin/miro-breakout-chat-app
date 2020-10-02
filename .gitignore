@@ -8,4 +8,4 @@ node_modules
 /miro-breakout-chat-app.iml
 /.idea/
 
-/backend/db/
+/backend/db/*.db
