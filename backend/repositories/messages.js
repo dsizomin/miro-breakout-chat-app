@@ -1,3 +1,8 @@
+/**
+ * Initializes new MessagesRepository.
+ * @param {sqlite3.Database} db
+ * @constructor
+ */
 function MessagesRepository(db) {
   this.db = db
 }
