@@ -68,6 +68,8 @@ initDB(dbPath)
       (req, res) => {
         const {roomId} = req.params
 
+        // TODO (dsizomin) For chats with a lot of messages loading the whole history might become a problem
+        // Consider using offset & limit
         messagesRepository.getByRoomId(roomId)
           .then(messages => res.json(messages))
           .catch(err => {
